@@ -69,3 +69,5 @@ server.post("/get_updated_files", (request, response) => {
 })
 
 server.listen(5000, "127.0.0.1");
+
+console.log("Server running at 127.0.0.1:5000");
