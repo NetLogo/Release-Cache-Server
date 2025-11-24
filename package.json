@@ -1,0 +1,26 @@
+{
+  "name": "release-cache-server",
+  "version": "1.0.0",
+  "description": "A cache of NetLogo releases that supports installation and updates through the NetLogo installer",
+  "author": "ERSUCC",
+  "main": "server.ts",
+  "type": "module",
+  "engines" : {
+    "npm": "~10.8.0",
+    "node": "~20.16.0"
+  },
+  "scripts": {
+    "start": "npx tsc && node build/server.js"
+  },
+  "dependencies": {
+    "express": "~4.21.0",
+    "adm-zip": "~0.5.16"
+  },
+  "devDependencies": {
+    "@types/express": "~4.17.0",
+    "@types/node": "~20.16.0",
+    "@types/adm-zip": "~0.5.7",
+    "ts-node": "~10.9.0",
+    "typescript": "~5.8.0"
+  }
+}
