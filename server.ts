@@ -33,7 +33,7 @@ server.post("/get_available_versions", (request, response) => {
 server.post("/get_updated_files", (request, response) => {
     const info = request.body;
 
-    if (!`${info["os"]}${info["arch"]}`.match(/^[\w- ]+$/) || !info["version"].match(/^\d\.\d\.\d(-beta\d)?$/)) {
+    if (!`${info["os"]}${info["arch"]}`.match(/^\w+$/) || !info["version"].match(/^\d\.\d\.\d(-beta\d)?$/)) {
         response.statusCode = 403;
         response.end();
 
