@@ -24,7 +24,6 @@
     "rootDirs": [ "." ],
     "declaration": true,
     "declarationMap": true,
-    "downlevelIteration": false,
     "emitBOM": false,
     "emitDeclarationOnly": false,
     "importHelpers": true,

@@ -6,11 +6,12 @@
   "main": "server.ts",
   "type": "module",
   "engines" : {
-    "npm": "~10.8.0",
-    "node": "~20.16.0"
+    "npm": "~11.6.2",
+    "node": "~24.13.0"
   },
   "scripts": {
-    "start": "npx tsc && node build/server.js"
+    "build": "npx tsc",
+    "serve": "node build/server.js"
   },
   "dependencies": {
     "express": "~4.21.0",
