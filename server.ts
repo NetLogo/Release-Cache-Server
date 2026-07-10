@@ -51,26 +51,15 @@ server.post("/get_version", (request, response) => {
     return;
   }
 
-  const root = `versions/${info["os"]}/${info["arch"]}/${info["version"]}`;
+  const zip = `versions/${info["os"]}/${info["arch"]}/${info["version"]}.zip`;
 
-  if (!fs.existsSync(root)) {
+  if (!fs.existsSync(zip)) {
     response.status(400).send();
 
     return;
   }
 
-  const zip = new AdmZip();
-
-  fs.readdirSync(root, { withFileTypes: true, recursive: true }).forEach(file => {
-    const full: string = path.join(file.parentPath, file.name);
-    const relative: string = path.relative(root, full);
-
-    if (file.name == ".checksum" || !file.name.endsWith(".checksum")) {
-      zip.addLocalFile(full, "", relative);
-    }
-  });
-
-  response.status(200).contentType("application/zip").send(zip.toBuffer());
+  response.status(200).contentType("application/zip").send(new AdmZip(zip).toBuffer());
 });
 
 server.post("/get_updated_files", (request, response) => {
