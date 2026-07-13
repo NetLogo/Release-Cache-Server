@@ -2,9 +2,9 @@ import express from "express";
 import fs from "fs";
 import path from "path";
 import AdmZip from "adm-zip";
+import { env } from "process";
 
-const host = "127.0.0.1";
-const port = 5000;
+const port: number = parseInt(`${env["RC_SERVICE_PORT"]}`);
 
 const server = express();
 
@@ -101,6 +101,10 @@ server.post("/get_updated_files", (request, response) => {
   response.status(200).contentType("application/zip").send(zip.toBuffer());
 });
 
-server.listen(port, host, () => {
-  console.log(`Server running at ${host}:${port}`);
+server.get("/health", (_, response) => {
+  response.status(200).send();
+});
+
+server.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
