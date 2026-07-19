@@ -17,10 +17,13 @@ RUN curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh" |
 
 ENV PATH="$PATH:$NVM_DIR/versions/node/v$NODE_VERSION/bin"
 
-COPY package-lock.json package.json README.md server.ts tsconfig.json /
+COPY src /src
+COPY package-lock.json package.json tsconfig.json /
 
 RUN npm install && \
     npm run build
+
+COPY versions /versions
 
 EXPOSE 4242
 

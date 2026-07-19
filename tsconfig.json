@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "include": [ "server.ts" ],
+  "include": [ "src/*.ts" ],
   "noCheck": false,
   "compilerOptions": {
     "allowUnreachableCode": false,
