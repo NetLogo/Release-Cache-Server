@@ -9,7 +9,7 @@ const server = express();
 
 server.use(express.json({ limit: "64mb" }));
 
-server.post("/get_available_versions", (request, response) => {
+server.post("/versions", (request, response) => {
   const info: PlatformInfo | null = sanitizeInfo(request.body, false);
 
   if (info) {
@@ -19,7 +19,7 @@ server.post("/get_available_versions", (request, response) => {
   }
 });
 
-server.post("/get_version", async (request, response) => {
+server.post("/version", async (request, response) => {
   const info: PlatformInfo | null = sanitizeInfo(request.body, true);
 
   if (info) {
@@ -29,7 +29,7 @@ server.post("/get_version", async (request, response) => {
   }
 });
 
-server.post("/get_updated_files", async (request, response) => {
+server.post("/update", async (request, response) => {
   const info: PlatformInfo | null = sanitizeInfo(request.body, true);
 
   if (info) {

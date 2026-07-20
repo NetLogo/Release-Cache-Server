@@ -81,7 +81,7 @@ export function getLength(info: PlatformInfo, path: string): Promise<number> {
   return s3.send(new HeadObjectCommand({
     Bucket: "release-cache",
     Key: `${info.os}/${info.arch}/${path}`
-  })).then(response => response.ContentLength ?? 0, _ => 0)
+  })).then(response => response.ContentLength ?? 0, _ => 0);
 }
 
 export async function getUpdates(info: PlatformInfo, checksums: any): Promise<Update[]> {
