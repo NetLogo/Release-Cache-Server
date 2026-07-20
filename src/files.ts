@@ -13,37 +13,54 @@ const s3 = new S3Client({
   }
 });
 
+export interface PlatformInfo {
+  os: string;
+  arch: string;
+  version?: string;
+}
+
 interface Update {
-  path: string,
-  url: string,
-  length: number
+  path: string;
+  url: string;
+  length: number;
 }
 
-function rootPath(info: any): string {
-  return `versions/${info["os"]}/${info["arch"]}`;
+function rootPath(info: PlatformInfo): string {
+  return `versions/${info.os}/${info.arch}`;
 }
 
-function checksumPath(info: any): string {
-  return `versions/${info["os"]}/${info["arch"]}/${info["version"]}.json`;
+function checksumPath(info: PlatformInfo): string {
+  return `versions/${info.os}/${info.arch}/${info.version}.json`;
 }
 
-export function sanitizeInfo(info: any, requireVersion: boolean): boolean {
+export function sanitizeInfo(info: any, requireVersion: boolean): PlatformInfo | null {
   if (!info["os"] || !info["arch"] || (requireVersion && !info["version"])) {
-    return false;
+    return null;
   }
 
   if (!`${info["os"]}${info["arch"]}`.match(/^\w+$/)) {
-    return false;
+    return null;
   }
 
   if (requireVersion) {
-    return info["version"].match(/^\d\.\d\.\d(-beta\d)?$/) && fs.existsSync(checksumPath(info));
+    if (info["version"].match(/^\d\.\d\.\d(-beta\d)?$/) && fs.existsSync(checksumPath(info))) {
+      return {
+        os: info["os"],
+        arch: info["arch"],
+        version: info["version"]
+      };
+    }
+  } else if (fs.existsSync(rootPath(info))) {
+    return {
+      os: info["os"],
+      arch: info["arch"]
+    };
   }
 
-  return fs.existsSync(rootPath(info));
+  return null;
 }
 
-export function getVersions(info: any): [string, string][] {
+export function getVersions(info: PlatformInfo): [string, string][] {
   return fs.readdirSync(rootPath(info), { withFileTypes: true }).map(file => {
     const contents = JSON.parse(fs.readFileSync(path.join(file.parentPath, file.name), "utf-8"));
 
@@ -51,34 +68,33 @@ export function getVersions(info: any): [string, string][] {
   });
 }
 
-export function getUrl(info: any, path: string): Promise<string> {
+export function getUrl(info: PlatformInfo, path: string): Promise<string> {
   return getSignedUrl(s3, new GetObjectCommand({
     Bucket: "release-cache",
-    Key: `${info["os"]}/${info["arch"]}/${path}`
+    Key: `${info.os}/${info.arch}/${path}`
   }), {
     expiresIn: 3000
   });
 }
 
-export function getLength(info: any, path: string): Promise<number> {
+export function getLength(info: PlatformInfo, path: string): Promise<number> {
   return s3.send(new HeadObjectCommand({
     Bucket: "release-cache",
-    Key: `${info["os"]}/${info["arch"]}/${path}`
+    Key: `${info.os}/${info.arch}/${path}`
   })).then(response => response.ContentLength ?? 0, _ => 0)
 }
 
-export async function getUpdates(info: any): Promise<Update[]> {
-  const oldChecksums = info["checksums"];
-  const newChecksums = JSON.parse(fs.readFileSync(checksumPath(info), "utf-8"));
+export async function getUpdates(info: PlatformInfo, checksums: any): Promise<Update[]> {
+  const stored = JSON.parse(fs.readFileSync(checksumPath(info), "utf-8"));
 
   const updates: Update[] = [];
 
-  for (const key in newChecksums) {
-    if (oldChecksums[key] != newChecksums[key]) {
+  for (const key in stored) {
+    if (checksums[key] != stored[key]) {
       updates.push({
         path: key,
-        url: await getUrl(info, `${info["version"]}/${key}`),
-        length: await getLength(info, `${info["version"]}/${key}`)
+        url: await getUrl(info, `${info.version}/${key}`),
+        length: await getLength(info, `${info.version}/${key}`)
       });
     }
   }

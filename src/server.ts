@@ -1,7 +1,7 @@
 import express from "express";
 import { env } from "process";
 
-import { getUpdates, getUrl, getVersions, sanitizeInfo } from "./files.js";
+import { getUpdates, getUrl, getVersions, sanitizeInfo, type PlatformInfo } from "./files.js";
 
 const port: number = parseInt(`${env["RC_SERVICE_PORT"]}`);
 
@@ -10,9 +10,9 @@ const server = express();
 server.use(express.json({ limit: "64mb" }));
 
 server.post("/get_available_versions", (request, response) => {
-  const info = request.body;
+  const info: PlatformInfo | null = sanitizeInfo(request.body, false);
 
-  if (sanitizeInfo(info, false)) {
+  if (info) {
     response.status(200).json(Object.fromEntries(getVersions(info)));
   } else {
     response.status(400).send();
@@ -20,20 +20,20 @@ server.post("/get_available_versions", (request, response) => {
 });
 
 server.post("/get_version", async (request, response) => {
-  const info = request.body;
+  const info: PlatformInfo | null = sanitizeInfo(request.body, true);
 
-  if (sanitizeInfo(info, true)) {
-    response.status(200).json(await getUrl(info, `${info["version"]}.zip`));
+  if (info) {
+    response.status(200).json(await getUrl(info, `${info.version}.zip`));
   } else {
     response.status(400).send();
   }
 });
 
 server.post("/get_updated_files", async (request, response) => {
-  const info = request.body;
+  const info: PlatformInfo | null = sanitizeInfo(request.body, true);
 
-  if (sanitizeInfo(info, true)) {
-    response.status(200).json(await getUpdates(info));
+  if (info) {
+    response.status(200).json(await getUpdates(info, request.body["checksums"]));
   } else {
     response.status(400).send();
   }
