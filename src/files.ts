@@ -1,4 +1,4 @@
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, HeadObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import fs from "fs";
 import path from "path";
@@ -12,6 +12,12 @@ const s3 = new S3Client({
     secretAccessKey: `${env["RC_S3_SECRET"]}`
   }
 });
+
+interface Update {
+  path: string,
+  url: string,
+  length: number
+}
 
 function rootPath(info: any): string {
   return `versions/${info["os"]}/${info["arch"]}`;
@@ -54,17 +60,28 @@ export function getUrl(info: any, path: string): Promise<string> {
   });
 }
 
-export async function checksumDiffs(info: any): Promise<[string, string][]> {
+export function getLength(info: any, path: string): Promise<number> {
+  return s3.send(new HeadObjectCommand({
+    Bucket: "release-cache",
+    Key: `${info["os"]}/${info["arch"]}/${path}`
+  })).then(response => response.ContentLength ?? 0, _ => 0)
+}
+
+export async function getUpdates(info: any): Promise<Update[]> {
   const oldChecksums = info["checksums"];
   const newChecksums = JSON.parse(fs.readFileSync(checksumPath(info), "utf-8"));
 
-  const entries: [string, string][] = [];
+  const updates: Update[] = [];
 
   for (const key in newChecksums) {
     if (oldChecksums[key] != newChecksums[key]) {
-      entries.push([ key, await getUrl(info, `${info["version"]}/${key}`) ]);
+      updates.push({
+        path: key,
+        url: await getUrl(info, `${info["version"]}/${key}`),
+        length: await getLength(info, `${info["version"]}/${key}`)
+      });
     }
   }
 
-  return entries;
+  return updates;
 }

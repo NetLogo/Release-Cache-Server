@@ -1,7 +1,7 @@
 import express from "express";
 import { env } from "process";
 
-import { checksumDiffs, getUrl, getVersions, sanitizeInfo } from "./files.js";
+import { getUpdates, getUrl, getVersions, sanitizeInfo } from "./files.js";
 
 const port: number = parseInt(`${env["RC_SERVICE_PORT"]}`);
 
@@ -33,7 +33,7 @@ server.post("/get_updated_files", async (request, response) => {
   const info = request.body;
 
   if (sanitizeInfo(info, true)) {
-    response.status(200).json(Object.fromEntries(await checksumDiffs(info)));
+    response.status(200).json(await getUpdates(info));
   } else {
     response.status(400).send();
   }
