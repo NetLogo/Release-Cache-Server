@@ -77,7 +77,7 @@ export function getUrl(info: PlatformInfo, path: string): Promise<string> {
   });
 }
 
-export function getLength(info: PlatformInfo, path: string): Promise<number> {
+function getLength(info: PlatformInfo, path: string): Promise<number> {
   return s3.send(new HeadObjectCommand({
     Bucket: "release-cache",
     Key: `${info.os}/${info.arch}/${path}`
@@ -87,17 +87,22 @@ export function getLength(info: PlatformInfo, path: string): Promise<number> {
 export async function getUpdates(info: PlatformInfo, checksums: any): Promise<Update[]> {
   const stored = JSON.parse(fs.readFileSync(checksumPath(info), "utf-8"));
 
-  const updates: Update[] = [];
+  const updates: Promise<Update>[] = [];
 
   for (const key in stored) {
     if (checksums[key] != stored[key]) {
-      updates.push({
-        path: key,
-        url: await getUrl(info, `${info.version}/${key}`),
-        length: await getLength(info, `${info.version}/${key}`)
-      });
+      const url: Promise<string> = getUrl(info, `${info.version}/${key}`);
+      const length: Promise<number> = getLength(info, `${info.version}/${key}`);
+
+      updates.push(url.then(url => length.then(length => {
+        return {
+          path: key,
+          url: url,
+          length: length
+        };
+      })));
     }
   }
 
-  return updates;
+  return Promise.all(updates);
 }
