@@ -23,6 +23,7 @@ interface Update {
   path: string;
   url: string;
   length: number;
+  exec: boolean;
 }
 
 function rootPath(info: PlatformInfo): string {
@@ -64,7 +65,7 @@ export function getVersions(info: PlatformInfo): [string, string][] {
   return fs.readdirSync(rootPath(info), { withFileTypes: true }).map(file => {
     const contents = JSON.parse(fs.readFileSync(path.join(file.parentPath, file.name), "utf-8"));
 
-    return [ file.name.replace(".json", ""), contents[".checksum"] ] as [string, string];
+    return [ file.name.replace(".json", ""), contents["root"] ] as [string, string];
   });
 }
 
@@ -89,8 +90,8 @@ export async function getUpdates(info: PlatformInfo, checksums: any): Promise<Up
 
   const updates: Promise<Update>[] = [];
 
-  for (const key in stored) {
-    if (checksums[key] != stored[key]) {
+  for (const key in stored["checksums"]) {
+    if (checksums[key] != stored["checksums"][key]) {
       const url: Promise<string> = getUrl(info, `${info.version}/${key}`);
       const length: Promise<number> = getLength(info, `${info.version}/${key}`);
 
@@ -98,7 +99,8 @@ export async function getUpdates(info: PlatformInfo, checksums: any): Promise<Up
         return {
           path: key,
           url: url,
-          length: length
+          length: length,
+          exec: stored["executable"].includes(key)
         };
       })));
     }
