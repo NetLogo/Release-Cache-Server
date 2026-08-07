@@ -1,7 +1,7 @@
 import express from "express";
 import { env } from "process";
 
-import { getUpdates, getUrl, getVersions, sanitizeInfo, type PlatformInfo } from "./files.js";
+import { getInstallerVersion, getUpdates, getUrl, getVersions, sanitizeInfo, type PlatformInfo } from "./files.js";
 
 const port: number = parseInt(`${env["RC_SERVICE_PORT"]}`);
 
@@ -34,6 +34,16 @@ server.post("/update", async (request, response) => {
 
   if (info) {
     response.status(200).json(await getUpdates(info, request.body["checksums"]));
+  } else {
+    response.status(400).send();
+  }
+});
+
+server.post("/installer", async (request, response) => {
+  const info: PlatformInfo | null = sanitizeInfo(request.body, false);
+
+  if (info) {
+    response.status(200).json(await getInstallerVersion(info));
   } else {
     response.status(400).send();
   }

@@ -26,6 +26,11 @@ interface Update {
   exec: boolean;
 }
 
+interface Installer {
+  version: string;
+  url: string;
+}
+
 function rootPath(info: PlatformInfo): string {
   return `versions/${info.os}/${info.arch}`;
 }
@@ -107,4 +112,20 @@ export async function getUpdates(info: PlatformInfo, checksums: any): Promise<Up
   }
 
   return Promise.all(updates);
+}
+
+export async function getInstallerVersion(info: PlatformInfo): Promise<Installer> {
+  const version: string = fs.readFileSync("versions/installer.txt", "utf-8").trim();
+
+  const url: string = await getSignedUrl(s3, new GetObjectCommand({
+    Bucket: "installer",
+    Key: `${info.os}/${info.arch}/${version}.zip`
+  }), {
+    expiresIn: 3000
+  });
+
+  return {
+    version,
+    url
+  };
 }
