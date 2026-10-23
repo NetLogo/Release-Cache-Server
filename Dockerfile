@@ -6,7 +6,7 @@ RUN apt update && \
 SHELL [ "/bin/bash", "-c" ]
 
 ENV NVM_DIR=/usr/local/nvm
-ENV NODE_VERSION=24.13.0
+ENV NODE_VERSION=24.22.1
 
 RUN mkdir -p "$NVM_DIR"
 

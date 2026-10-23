@@ -6,8 +6,8 @@
   "main": "server.ts",
   "type": "module",
   "engines" : {
-    "npm": "~11.6.2",
-    "node": "~24.13.0"
+    "npm": "^11.21.1",
+    "node": "^24.22.1"
   },
   "scripts": {
     "build": "npx tsc",
